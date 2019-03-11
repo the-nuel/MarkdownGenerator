@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace MarkdownWikiGenerator
+namespace MarkdownGeneratorCore
 {
     public class MarkdownBuilder
     {

@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace MarkdownWikiGenerator
+namespace MarkdownGeneratorCore
 {
     class Program
     {
@@ -26,7 +23,7 @@ namespace MarkdownWikiGenerator
                 target = args[0];
                 dest = args[1];
             }
-            else if (args.Length == 3) 
+            else if (args.Length == 3)
             {
                 target = args[0];
                 dest = args[1];

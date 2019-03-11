@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace MarkdownWikiGenerator
+namespace MarkdownGeneratorCore
 {
     public enum MemberType
     {
@@ -36,14 +36,17 @@ namespace MarkdownWikiGenerator
 
     public static class VSDocParser
     {
-        public static XmlDocumentComment[] ParseXmlComment(XDocument xDocument) {
+        public static XmlDocumentComment[] ParseXmlComment(XDocument xDocument)
+        {
             return ParseXmlComment(xDocument, null);
         }
 
         // cheap, quick hack parser:)
-        internal static XmlDocumentComment[] ParseXmlComment(XDocument xDocument, string namespaceMatch) {
+        internal static XmlDocumentComment[] ParseXmlComment(XDocument xDocument, string namespaceMatch)
+        {
             return xDocument.Descendants("member")
-                .Select(x => {
+                .Select(x =>
+                {
                     var match = Regex.Match(x.Attribute("name").Value, @"(.):(.+)\.([^.()]+)?(\(.+\)|$)");
                     if (!match.Groups[1].Success) return null;
 
@@ -53,6 +56,7 @@ namespace MarkdownWikiGenerator
                     var summaryXml = x.Elements("summary").FirstOrDefault()?.ToString()
                         ?? x.Element("summary")?.ToString()
                         ?? "";
+
                     summaryXml = Regex.Replace(summaryXml, @"<\/?summary>", string.Empty);
                     summaryXml = Regex.Replace(summaryXml, @"<para\s*/>", Environment.NewLine);
                     summaryXml = Regex.Replace(summaryXml, @"<see cref=""\w:([^\""]*)""\s*\/>", m => ResolveSeeElement(m, namespaceMatch));
@@ -61,8 +65,49 @@ namespace MarkdownWikiGenerator
 
                     var summary = parsed;
 
-                    if (summary != "") {
-                        summary = string.Join("  ", summary.Split(new[] { "\r", "\n", "\t" }, StringSplitOptions.RemoveEmptyEntries).Select(y => y.Trim()));
+                    if (summary != "")
+                    {
+                        summary = string.Join(Environment.NewLine, summary.Split(Environment.NewLine).Select(y => y.Trim()));
+                    }
+
+                    var sourcesElement = x.Elements("sources").FirstOrDefault() ?? x.Element("sources");
+                    if (sourcesElement != null)
+                    {
+                        summary += Environment.NewLine + "**Sources:**" + Environment.NewLine;
+                        var sinks = sourcesElement.Elements("source").Select(s => s.Value.Trim()).ToList();
+                        if (!sinks.Any())
+                        {
+                            summary += "(none)" + Environment.NewLine;
+                        }
+                        else
+                        {
+                            foreach (var s in sinks)
+                            {
+                                summary += "* " + s + Environment.NewLine;
+                            }
+                        }
+                        summary += Environment.NewLine;
+                    }
+
+                    var sinksElement = x.Elements("sinks").FirstOrDefault() ?? x.Element("sinks");
+                    if (sinksElement != null)
+                    {
+                        if (sourcesElement == null)
+                            summary += Environment.NewLine;
+                        summary += "**Sinks:**" + Environment.NewLine;
+                        var sinks = sinksElement.Elements("sink").Select(s => s.Value.Trim()).ToList();
+                        if (!sinks.Any())
+                        {
+                            summary += "(none)" + Environment.NewLine;
+                        }
+                        else
+                        {
+                            foreach (var s in sinks)
+                            {
+                                summary += "* " + s + Environment.NewLine;
+                            }
+                        }
+                        summary += Environment.NewLine;
                     }
 
                     var returns = ((string)x.Element("returns")) ?? "";
@@ -76,7 +121,8 @@ namespace MarkdownWikiGenerator
                         ? match.Groups[2].Value + "." + match.Groups[3].Value
                         : match.Groups[2].Value;
 
-                    return new XmlDocumentComment {
+                    return new XmlDocumentComment
+                    {
                         MemberType = memberType,
                         ClassName = className,
                         MemberName = match.Groups[3].Value,
@@ -90,10 +136,13 @@ namespace MarkdownWikiGenerator
                 .ToArray();
         }
 
-        private static string ResolveSeeElement(Match m, string ns) {
+        private static string ResolveSeeElement(Match m, string ns)
+        {
             var typeName = m.Groups[1].Value;
-            if (!string.IsNullOrWhiteSpace(ns)) {
-                if (typeName.StartsWith(ns)) {
+            if (!string.IsNullOrWhiteSpace(ns))
+            {
+                if (typeName.StartsWith(ns))
+                {
                     return $"[{typeName}]({Regex.Replace(typeName, $"\\.(?:.(?!\\.))+$", me => me.Groups[0].Value.Replace(".", "#").ToLower())})";
                 }
             }
