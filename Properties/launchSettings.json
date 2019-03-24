@@ -2,7 +2,7 @@
   "profiles": {
     "MarkdownGeneratorCore": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\Michael\\Documents\\Coding\\Nauvis\\src\\Common\\bin\\Debug\\netcoreapp2.1\\Common.dll C:\\Users\\Michael\\Documents\\Coding\\Nauvis.wiki Common.SNS"
+      "commandLineArgs": "..\\..\\..\\..\\Nauvis\\src\\Common\\bin\\Debug\\netcoreapp2.1\\Common.dll ..\\..\\..\\..\\Nauvis.wiki Common.SNS(?!.Email)"
     }
   }
 }
