@@ -42,7 +42,7 @@ namespace MarkdownGeneratorCore
         }
 
         // cheap, quick hack parser:)
-        internal static XmlDocumentComment[] ParseXmlComment(XDocument xDocument, string namespaceMatch)
+        internal static XmlDocumentComment[] ParseXmlComment(XDocument xDocument, Regex namespaceRegex)
         {
             return xDocument.Descendants("member")
                 .Select(x =>
@@ -59,7 +59,7 @@ namespace MarkdownGeneratorCore
 
                     summaryXml = Regex.Replace(summaryXml, @"<\/?summary>", string.Empty);
                     summaryXml = Regex.Replace(summaryXml, @"<para\s*/>", Environment.NewLine);
-                    summaryXml = Regex.Replace(summaryXml, @"<see cref=""\w:([^\""]*)""\s*\/>", m => ResolveSeeElement(m, namespaceMatch));
+                    summaryXml = Regex.Replace(summaryXml, @"<see cref=""\w:([^\""]*)""\s*\/>", m => ResolveSeeElement(m, namespaceRegex));
 
                     var parsed = Regex.Replace(summaryXml, @"<(type)*paramref name=""([^\""]*)""\s*\/>", e => $"`{e.Groups[1].Value}`");
 
@@ -136,12 +136,12 @@ namespace MarkdownGeneratorCore
                 .ToArray();
         }
 
-        private static string ResolveSeeElement(Match m, string ns)
+        private static string ResolveSeeElement(Match m, Regex ns)
         {
             var typeName = m.Groups[1].Value;
-            if (!string.IsNullOrWhiteSpace(ns))
+            if (ns != null)
             {
-                if (typeName.StartsWith(ns))
+                if (ns.IsMatch(typeName))
                 {
                     return $"[{typeName}]({Regex.Replace(typeName, $"\\.(?:.(?!\\.))+$", me => me.Groups[0].Value.Replace(".", "#").ToLower())})";
                 }

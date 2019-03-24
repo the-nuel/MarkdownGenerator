@@ -212,15 +212,15 @@ namespace MarkdownGeneratorCore
         {
             var xmlPath = Path.Combine(Directory.GetParent(dllPath).FullName, Path.GetFileNameWithoutExtension(dllPath) + ".xml");
 
+            var namespaceRegex =
+                !string.IsNullOrEmpty(namespaceMatch) ? new Regex(namespaceMatch) : null;
+
             XmlDocumentComment[] comments = new XmlDocumentComment[0];
             if (File.Exists(xmlPath))
             {
-                comments = VSDocParser.ParseXmlComment(XDocument.Parse(File.ReadAllText(xmlPath)), namespaceMatch);
+                comments = VSDocParser.ParseXmlComment(XDocument.Parse(File.ReadAllText(xmlPath)), namespaceRegex);
             }
             var commentsLookup = comments.ToLookup(x => x.ClassName);
-
-            var namespaceRegex = 
-                !string.IsNullOrEmpty(namespaceMatch) ? new Regex(namespaceMatch) : null;
 
             var markdownableTypes = new[] { Assembly.LoadFrom(dllPath) }
                 .SelectMany(x =>
